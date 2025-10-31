@@ -1,22 +1,23 @@
-import "./globals.css";
-import { Inter } from "next/font/google";
-import Providers from "./providers";
+import type React from "react"
+import type { Metadata } from "next"
+import { Geist } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] });
+const _geist = Geist({ subsets: ["latin"] })
 
-export const metadata = {
-  title: "RAVEVIEW",
-  description: "Rate and review DJ sets – like Letterboxd for DJ sets.",
-};
+export const metadata: Metadata = {
+  title: "SetReviews - Reseñas de DJ Sets",
+  description: "Plataforma para escribir y leer reseñas de DJ sets",
+  generator: "v0.app",
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground`}>
-        <Providers>
-          <main className="min-h-dvh">{children}</main>
-        </Providers>
+    <html lang="es" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
-  );
+  )
 }
