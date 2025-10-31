@@ -110,7 +110,7 @@ export function Navbar() {
               <Link href="/set/new">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Nueva Reseña</span>
+                  <span className="hidden sm:inline">Nuevo set</span>
                 </Button>
               </Link>
 
