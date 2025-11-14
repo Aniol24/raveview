@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"           
 import { supabaseBrowser } from "@/lib/supabase-client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -13,8 +14,10 @@ export function AvatarUploader({
   currentAvatarUrl?: string | null
   displayName?: string
 }) {
+  const router = useRouter()   
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+                       
 
   const initials =
     (displayName || "U")
@@ -78,8 +81,8 @@ export function AvatarUploader({
         return
       }
 
-      // refrescamos
-      window.location.reload()
+      router.refresh()
+
     } finally {
       setUploading(false)
       if (fileInputRef.current) {
@@ -95,9 +98,7 @@ export function AvatarUploader({
 
   return (
     <div className="flex items-center gap-4">
-      <div
-        className="relative h-20 w-20"
-      >
+      <div className="relative h-20 w-20">
         <Avatar className="h-20 w-20 ring-2 ring-border">
           {currentAvatarUrl ? <AvatarImage src={currentAvatarUrl} alt={displayName} /> : null}
           <AvatarFallback>{initials}</AvatarFallback>

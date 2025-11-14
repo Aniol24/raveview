@@ -1,4 +1,3 @@
-// lib/supabase-server.ts
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 
@@ -7,7 +6,6 @@ export async function supabaseServer() {
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !anon) {
-    // aquí fallamos pronto y claro
     throw new Error("Supabase env vars missing: check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY")
   }
 

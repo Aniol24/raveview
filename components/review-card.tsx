@@ -10,22 +10,40 @@ interface ReviewCardProps {
   comment: string
   date: string
   wasPresent?: boolean
+  avatarUrl?: string | null
 }
 
-export function ReviewCard({ userName, rating, comment, date, wasPresent = false }: ReviewCardProps) {
+export function ReviewCard({
+  userName,
+  rating,
+  comment,
+  date,
+  wasPresent = false,
+  avatarUrl
+}: ReviewCardProps) {
   return (
     <Card className="transition-colors hover:border-primary/30">
       <CardContent className="p-4">
         <div className="mb-3 flex items-start justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-              <User className="h-5 w-5 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={userName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <User className="h-5 w-5 text-muted-foreground" />
+              )}
             </div>
+
             <div>
               <p className="font-medium">{userName}</p>
               <p className="text-xs text-muted-foreground">{date}</p>
             </div>
           </div>
+
           <RatingStars rating={rating} size="sm" showNumber={false} />
         </div>
 
@@ -46,7 +64,9 @@ export function ReviewCard({ userName, rating, comment, date, wasPresent = false
           </motion.div>
         )}
 
-        <p className="text-sm leading-relaxed text-muted-foreground text-pretty">{comment}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground text-pretty">
+          {comment}
+        </p>
       </CardContent>
     </Card>
   )
