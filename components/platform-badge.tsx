@@ -1,4 +1,4 @@
-import type { Platform } from "@/types"
+import type { Platform } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 export function PlatformBadge({ platform, className }: { platform: Platform; className?: string }) {
