@@ -103,22 +103,23 @@ export default function SetDetailPage() {
         if (revErr) throw new Error(revErr.message)
 
         const mapped =
-          (revRows as any[]).map((r) => ({
-            userId: r.user_id,
-            userName:
-              r.profiles?.[0]?.display_name ??
-              r.profiles?.[0]?.username ??
-              "Anónimo",
-            avatarUrl: r.profiles?.[0]?.avatar_url ?? null,
-            rating: r.rating,
-            comment: r.comment ?? "",
-            wasPresent: r.was_present,
-            date: new Date(r.created_at).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            }),
-          })) ?? []
+        (revRows as any[]).map((r) => ({
+          userId: r.user_id,
+          userName:
+            r.profiles?.display_name ??
+            r.profiles?.username ??
+            "Anónimo",
+          avatarUrl: r.profiles?.avatar_url ?? null,
+          rating: r.rating,
+          comment: r.comment ?? "",
+          wasPresent: r.was_present,
+          date: new Date(r.created_at).toLocaleDateString("es-ES", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+        })) ?? []
+
 
 
         if (!cancelled) setReviews(mapped)

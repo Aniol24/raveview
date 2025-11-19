@@ -65,9 +65,10 @@ export default function HomePage() {
     if (!q) return base
     return base.filter(
       (set) =>
-        set.title.toLowerCase().includes(q) ||
-        set.artist.toLowerCase().includes(q)
+        set.title?.toLowerCase().includes(q) ||
+        set.artist?.toLowerCase().includes(q)
     )
+
   }, [searchQuery, sets])
 
   return (
