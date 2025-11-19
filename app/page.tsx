@@ -72,7 +72,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn={isLoggedIn} />
+      <Navbar />
 
       {/* ======= HERO con fondo y logo ======= */}
       <section className="relative h-[60vh] w-full overflow-hidden">

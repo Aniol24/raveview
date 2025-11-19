@@ -14,6 +14,8 @@ interface UserProfile {
   avatar_url?: string | null
 }
 
+
+
 export function Navbar() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
