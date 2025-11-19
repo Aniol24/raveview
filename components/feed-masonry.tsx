@@ -5,7 +5,7 @@ import type { DjSet } from "@/lib/types"
 import { SetMasonryItem } from "@/components/set-masonry-item"
 import { cn } from "@/lib/utils"
 
-function useGridSpan(itemRef: React.RefObject<HTMLDivElement>, gridRef: React.RefObject<HTMLDivElement>) {
+function useGridSpan(itemRef: React.RefObject<HTMLDivElement | null>, gridRef: React.RefObject<HTMLDivElement | null>) {
   const [span, setSpan] = useState(1)
 
   useLayoutEffect(() => {

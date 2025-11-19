@@ -20,11 +20,11 @@ type ReviewRow = {
   was_present: boolean
   created_at: string
   user_id: string
-  profiles: {
+  profiles: Array<{
     username: string | null
     display_name: string | null
     avatar_url: string | null
-  } | null
+  }> | null
 }
 
 export default function SetDetailPage() {
@@ -103,13 +103,13 @@ export default function SetDetailPage() {
         if (revErr) throw new Error(revErr.message)
 
         const mapped =
-          (revRows as ReviewRow[]).map((r) => ({
+          (revRows as any[]).map((r) => ({
             userId: r.user_id,
             userName:
-              r.profiles?.display_name ??
-              r.profiles?.username ??
+              r.profiles?.[0]?.display_name ??
+              r.profiles?.[0]?.username ??
               "Anónimo",
-            avatarUrl: r.profiles?.avatar_url ?? null,
+            avatarUrl: r.profiles?.[0]?.avatar_url ?? null,
             rating: r.rating,
             comment: r.comment ?? "",
             wasPresent: r.was_present,
@@ -119,6 +119,7 @@ export default function SetDetailPage() {
               year: "numeric",
             }),
           })) ?? []
+
 
         if (!cancelled) setReviews(mapped)
       } catch (e: any) {
@@ -140,15 +141,16 @@ export default function SetDetailPage() {
     return reviews.find((r) => r.userId === currentUserId) ?? null
   }, [reviews, currentUserId])
 
-  const ytThumb = useMemo(
-    () =>
-      getThumbnailUrl({
-        platform: setData?.platform,
-        url: setData?.url,
-        thumbnailUrl: setData?.thumbnailUrl,
-      }),
-    [setData?.platform, setData?.url, setData?.thumbnailUrl]
-  )
+  const ytThumb = useMemo(() => {
+    if (!setData?.platform || !setData?.url) return undefined
+
+    return getThumbnailUrl({
+      platform: setData.platform,
+      url: setData.url,
+      thumbnailUrl: setData.thumbnailUrl,
+    })
+  }, [setData?.platform, setData?.url, setData?.thumbnailUrl])
+
 
   const { thumb: scThumb } = useSoundCloudThumb(
     setData?.platform === "soundcloud" && !setData?.thumbnailUrl ? setData?.url : undefined
@@ -399,12 +401,6 @@ export default function SetDetailPage() {
 
                   <ReviewForm
                     onSubmit={handleUpdateReview}
-                    initialData={{
-                      rating: userReview.rating,
-                      comment: userReview.comment,
-                      wasPresent: userReview.wasPresent
-                    }}
-                    isEditing
                   />
                 </div>
               ) : (

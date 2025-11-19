@@ -49,17 +49,16 @@ export function Navbar() {
           user.email?.split("@")[0] ??
           "User"
 
-        await supabaseBrowser
-          .from("profiles")
-          .insert({ id: user.id, display_name })
-          .then(() => {
-            setProfile({ id: user.id, display_name, avatar_url: null })
-            setLoading(false)
-          })
-          .catch(() => {
-            setProfile({ id: user.id, display_name, avatar_url: null })
-            setLoading(false)
-          })
+        try {
+          await supabaseBrowser
+            .from("profiles")
+            .insert({ id: user.id, display_name })
+          setProfile({ id: user.id, display_name, avatar_url: null })
+        } catch (err) {
+          setProfile({ id: user.id, display_name, avatar_url: null })
+        } finally {
+          setLoading(false)
+        }
       }
     }
 
