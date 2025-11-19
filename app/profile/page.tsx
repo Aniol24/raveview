@@ -25,7 +25,7 @@ export default async function ProfilePage() {
 
   const { data: myReviews, error: revErr } = await supabase
     .from("reviews")
-    .select("id, rating, comment, created_at, dj_set_id")
+    .select("id, rating, comment, created_at, set_id")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
@@ -34,7 +34,7 @@ export default async function ProfilePage() {
   let setsById: Record<string, any> = {}
 
   if (safeReviews.length > 0) {
-    const ids = safeReviews.map((r) => r.dj_set_id).filter(Boolean)
+    const ids = safeReviews.map((r) => r.set_id).filter(Boolean)
     const uniqueIds = Array.from(new Set(ids))
 
     if (uniqueIds.length > 0) {
@@ -139,7 +139,7 @@ export default async function ProfilePage() {
           ) : (
             <div className="space-y-4">
               {safeReviews.map((review) => {
-                const set = review.dj_set_id ? setsById[review.dj_set_id] : null
+                const set = review.set_id ? setsById[review.set_id] : null
                 return (
                   <div
                     key={review.id}
