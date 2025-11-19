@@ -262,7 +262,8 @@ export async function fetchSetMetadata(rawUrl: string) {
 }
 
 async function ensureProfileExists(userId: string) {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
+
 
   const { data: existing } = await supabase
     .from("profiles")
@@ -289,7 +290,8 @@ export async function createSet(input: {
   durationSec?: number
   uploadedAt?: string
 }) {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
+
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("No estás autenticado.")
@@ -342,7 +344,8 @@ export async function createSet(input: {
 }
 
 export async function findSetByUrl(url: string): Promise<{ id: string } | null> {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
+
   const { data, error } = await supabase
     .from("dj_sets")
     .select("id")
