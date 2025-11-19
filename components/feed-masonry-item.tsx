@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useLayoutEffect, useEffect, useState } from "react"
+import { useRef, useLayoutEffect, useEffect, useState, useCallback } from "react"
 import { SetMasonryItem } from "@/components/set-masonry-item"
 import { cn } from "@/lib/utils"
 import type { DjSet } from "@/lib/types"
@@ -11,7 +11,7 @@ function useGridSpan(
 ) {
   const [span, setSpan] = useState(1)
 
-  const recalc = () => {
+  const recalc = useCallback(() => {
     const item = itemRef.current
     const grid = gridRef.current
     if (!item || !grid) return
@@ -22,19 +22,20 @@ function useGridSpan(
 
     const height = item.getBoundingClientRect().height
     const computed = Math.ceil((height + rowGap) / (autoRows + rowGap))
-
     setSpan(computed > 0 ? computed : 1)
-  }
+  }, [itemRef, gridRef])
 
   useLayoutEffect(() => {
     recalc()
-    const ro = new ResizeObserver(recalc)
-    if (itemRef.current) ro.observe(itemRef.current)
+
+    const ro = new ResizeObserver(() => recalc())
+    const node = itemRef.current
+    if (node) ro.observe(node)
 
     return () => ro.disconnect()
-  }, [])
+  }, [recalc, itemRef])
 
-  // recalc after images inside finish loading
+  // Esperar a que carguen las imágenes
   useEffect(() => {
     const imgs = itemRef.current?.querySelectorAll("img") ?? []
     imgs.forEach(img => {
@@ -42,18 +43,25 @@ function useGridSpan(
         img.onload = () => recalc()
       }
     })
-  }, [])
+  }, [recalc])
 
-  // recalc again after render stabilizes
+  // Recalcular tras el render
   useEffect(() => {
-    setTimeout(recalc, 0)
-  })
+    const id = requestAnimationFrame(recalc)
+    return () => cancelAnimationFrame(id)
+  }, [recalc])
 
   return span
 }
 
-export function MasonryItemWrapper({ set, gridRef }: { set: DjSet, gridRef: React.RefObject<HTMLDivElement> }) {
-  const itemRef = useRef<HTMLDivElement>(null)
+export function MasonryItemWrapper({
+  set,
+  gridRef,
+}: {
+  set: DjSet
+  gridRef: React.RefObject<HTMLDivElement | null>
+}) {
+  const itemRef = useRef<HTMLDivElement | null>(null)
   const span = useGridSpan(itemRef, gridRef)
 
   return (
