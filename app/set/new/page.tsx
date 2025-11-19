@@ -1,7 +1,8 @@
 "use client"
 
-import { useTransition } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useEffect, useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,14 +13,12 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Loader2 } from "lucide-react"
 
-import { fetchSetMetadata, createSet, findSetByUrl } from "./actions"
+import { fetchSetMetadata, createSet } from "./actions"
 import { supabaseBrowser } from "@/lib/supabase-client"
-
 
 const urlSchema = z.object({
   url: z.string().url("Pon una URL válida de YouTube o SoundCloud"),
 })
-
 
 function normalizeScShort(raw: string) {
   return raw.replace("://on.soundcloud.com/", "://soundcloud.com/")
@@ -37,32 +36,54 @@ function clientCanonicalizeUrl(raw: string) {
   }
 }
 
-async function clientFindSetByUrl(url: string): Promise<{ id: string } | null> {
-  const { data, error } = await supabaseBrowser
-    .from("dj_sets")
-    .select("id")
-    .eq("url", url)
-    .maybeSingle()
-
-  if (error && (error as any).code !== "PGRST116") {
-    throw new Error(error.message)
-  }
-  return data ?? null
-}
-
-
 export default function NewSetPage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
 
   const form = useForm<z.infer<typeof urlSchema>>({
     resolver: zodResolver(urlSchema),
     defaultValues: { url: "" },
   })
 
+  // 🔒 CLIENT-SIDE PROTECTION
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabaseBrowser.auth.getUser()
+      if (!user) {
+        router.push("/login")
+        return
+      }
+
+      const { data: profile } = await supabaseBrowser
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (!profile?.is_admin) {
+        router.push("/")
+        return
+      }
+
+      setIsAdmin(true)
+    }
+
+    checkAdmin()
+  }, [router])
+
+  if (isAdmin === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
   const onContinue = () => {
     const raw = form.getValues("url") || ""
     const parsed = urlSchema.safeParse({ url: raw })
+
     if (!parsed.success) {
       form.setError("url", {
         type: "manual",
@@ -75,12 +96,6 @@ export default function NewSetPage() {
 
     startTransition(async () => {
       try {
-        const existing = await clientFindSetByUrl(canonical)
-        if (existing?.id) {
-          router.push(`/set/${existing.id}`)
-          return
-        }
-
         const meta = await fetchSetMetadata(canonical)
 
         const created = await createSet({
@@ -131,6 +146,7 @@ export default function NewSetPage() {
               <p className="mt-1 text-sm text-red-600">{form.formState.errors.url.message}</p>
             ) : null}
           </div>
+
           <div>
             <Button type="button" onClick={onContinue} disabled={isPending || !form.watch("url")}>
               {isPending ? (

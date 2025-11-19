@@ -12,7 +12,9 @@ interface UserProfile {
   id: string
   display_name: string
   avatar_url?: string | null
+  is_admin?: boolean
 }
+
 
 
 
@@ -36,7 +38,7 @@ export function Navbar() {
 
       const { data: prof, error } = await supabaseBrowser
         .from("profiles")
-        .select("id, display_name, avatar_url")
+        .select("id, display_name, avatar_url, is_admin")
         .eq("id", user.id)
         .maybeSingle()
 
@@ -108,12 +110,15 @@ export function Navbar() {
                 </Button>
               </Link>
 
-              <Link href="/set/new">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Nuevo set</span>
-                </Button>
-              </Link>
+              {profile.is_admin && (
+                <Link href="/set/new">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">Nuevo set</span>
+                  </Button>
+                </Link>
+              )}
+
 
               <div className="flex items-center gap-3 ml-2">
                 <Link href="/profile" className="inline-flex">
