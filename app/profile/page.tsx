@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { supabaseServer } from "@/lib/supabase-server"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
 import { AvatarUploader } from "@/components/avatar-uploader"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
 
 export const dynamic = "force-dynamic"
 
@@ -12,18 +11,17 @@ export default async function ProfilePage() {
   const supabase = await supabaseServer()
 
   const userRes = await supabase.auth.getUser()
-  if (userRes.error || !userRes.data.user) {
-    redirect("/login")
-  }
+  if (userRes.error || !userRes.data.user) redirect("/login")
+
   const user = userRes.data.user
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url, created_at, is_admin")
+    .select("id, username, display_name, avatar_url, created_at")
     .eq("id", user.id)
     .maybeSingle()
 
-  const { data: myReviews, error: revErr } = await supabase
+  const { data: myReviews } = await supabase
     .from("reviews")
     .select("id, rating, comment, created_at, set_id")
     .eq("user_id", user.id)
@@ -31,16 +29,18 @@ export default async function ProfilePage() {
 
   const safeReviews = myReviews ?? []
 
+  // Load sets referenced by those reviews
   let setsById: Record<string, any> = {}
 
   if (safeReviews.length > 0) {
-    const ids = safeReviews.map((r) => r.set_id).filter(Boolean)
-    const uniqueIds = Array.from(new Set(ids))
+    const uniqueIds = [
+      ...new Set(safeReviews.map((r) => r.set_id).filter(Boolean)),
+    ]
 
     if (uniqueIds.length > 0) {
       const { data: sets } = await supabase
         .from("dj_sets")
-        .select("id, title, artist_name, thumbnail_url, platform, url")
+        .select("id, title, artist_name, thumbnail_url, platform")
         .in("id", uniqueIds)
 
       if (sets) {
@@ -61,7 +61,7 @@ export default async function ProfilePage() {
 
   const initials = displayName
     .split(" ")
-    .map((p: string) => p[0])
+    .map((p: string) => p[0] ?? "")
     .join("")
     .slice(0, 2)
     .toUpperCase()
@@ -71,22 +71,19 @@ export default async function ProfilePage() {
       <Navbar />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="flex items-center gap-5">
-          <AvatarUploader
-            currentAvatarUrl={profile?.avatar_url ?? undefined}
-            displayName={displayName}
-          />
+            <AvatarUploader
+              currentAvatarUrl={profile?.avatar_url ?? undefined}
+              displayName={displayName}
+            />
+
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">{displayName}</h1>
+              <h1 className="text-3xl font-bold">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">@{profile?.username}</p>
 
-              {profile?.username ? (
-                <p className="text-muted-foreground text-sm">@{profile.username}</p>
-              ) : (
-                <p className="text-muted-foreground text-sm">@{user.email?.split("@")[0]}</p>
-              )}
-
-              {profile?.created_at ? (
+              {profile?.created_at && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Se unió el{" "}
                   <span className="font-medium">
@@ -97,28 +94,27 @@ export default async function ProfilePage() {
                     })}
                   </span>
                 </p>
-              ) : null}
+              )}
             </div>
           </div>
 
-          <div className="flex gap-6 sm:gap-8">
-            <div className="text-center">
-              <p className="text-2xl font-semibold">{safeReviews.length}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Reseñas
-              </p>
-            </div>
+          <div className="text-center">
+            <p className="text-2xl font-semibold">{safeReviews.length}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+              Reseñas
+            </p>
           </div>
         </div>
 
-
         <Separator className="my-6" />
 
+        {/* STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div className="rounded-lg border bg-card p-4">
             <p className="text-sm text-muted-foreground">Reseñas hechas</p>
             <p className="text-2xl font-semibold">{safeReviews.length}</p>
           </div>
+
           <div className="rounded-lg border bg-card p-4">
             <p className="text-sm text-muted-foreground">Última reseña</p>
             <p className="text-sm text-muted-foreground">
@@ -129,6 +125,7 @@ export default async function ProfilePage() {
           </div>
         </div>
 
+        {/* LISTA DE RESEÑAS */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Tus reseñas</h2>
 
@@ -137,67 +134,58 @@ export default async function ProfilePage() {
               Aún no has dejado ninguna reseña. Ve a cualquier set y deja la primera ⭐
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {safeReviews.map((review) => {
-                const set = review.set_id ? setsById[review.set_id] : null
+                const set = setsById[review.set_id]
+
                 return (
                   <div
                     key={review.id}
-                    className="rounded-lg border bg-card p-4 flex flex-col sm:flex-row gap-4 justify-between"
+                    className="flex gap-4 border rounded-lg bg-card p-4"
                   >
-                    <div className="flex gap-3">
-                      {set?.thumbnail_url ? (
-                        <img
-                          src={set.thumbnail_url}
-                          alt={set.title}
-                          className="w-16 h-16 rounded-md object-cover bg-muted"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center text-xs">
-                          SET
-                        </div>
-                      )}
-                      <div>
-                        <a
-                          href={set ? `/set/${set.id}` : "#"}
-                          className={set ? "font-medium hover:underline" : "font-medium"}
-                        >
-                          {set?.title ?? "Set desconocido"}
-                        </a>
-                        <p className="text-sm text-muted-foreground">
-                          {set?.artist_name ? set.artist_name : "Artista desconocido"}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Reseñado el {new Date(review.created_at).toLocaleDateString("es-ES")} a las{" "}
-                          {new Date(review.created_at).toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                    {/* MINIATURA */}
+                    {set?.thumbnail_url ? (
+                      <img
+                        src={set.thumbnail_url}
+                        alt={set.title}
+                        className="w-20 h-20 rounded-md object-cover bg-muted"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-md bg-muted flex items-center justify-center text-xs">
+                        IMG
                       </div>
-                    </div>
+                    )}
 
-                    <div className="flex flex-col items-start sm:items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-semibold">
+                    {/* INFO */}
+                    <div className="flex-1">
+                      {/* TÍTULO */}
+                      <a
+                        href={set ? `/set/${set.id}` : "#"}
+                        className="font-semibold text-lg hover:underline"
+                      >
+                        {set?.title ?? "Set desconocido"}
+                      </a>
+
+                      {/* RATING */}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xl font-bold">
                           {typeof review.rating === "number"
                             ? review.rating.toFixed(1).replace(".0", "")
                             : review.rating}
                         </span>
                         <span className="text-xs text-muted-foreground">/10</span>
                       </div>
+
+                      {/* COMENTARIO */}
                       {review.comment ? (
-                        <p className="text-sm text-muted-foreground max-w-md text-left sm:text-right">
+                        <p className="text-sm text-muted-foreground mt-2">
                           {review.comment}
                         </p>
                       ) : (
-                        <p className="text-xs text-muted-foreground italic">Sin comentario</p>
+                        <p className="text-xs italic text-muted-foreground mt-2">
+                          Sin comentario
+                        </p>
                       )}
-                      {set?.platform ? (
-                        <Badge variant="outline" className="text-xs">
-                          {set.platform}
-                        </Badge>
-                      ) : null}
                     </div>
                   </div>
                 )
