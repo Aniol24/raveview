@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useLayoutEffect, useState } from "react"
-import type { DjSet } from "@/types"
+import type { DjSet } from "@/lib/types"
 import { SetMasonryItem } from "@/components/set-masonry-item"
 import { cn } from "@/lib/utils"
 

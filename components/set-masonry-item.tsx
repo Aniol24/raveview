@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Star, Play } from "lucide-react"
-import type { DjSet } from "@/types"
+import type { DjSet } from "@/lib/types"
 import { PlatformBadge } from "@/components/platform-badge"
 import { formatDuration, niceMonth, getThumbnailUrl } from "@/lib/platform"
 import { useSoundCloudThumb } from "@/hooks/use-soundcloud-thumb"
