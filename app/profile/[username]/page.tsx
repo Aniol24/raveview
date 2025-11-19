@@ -10,15 +10,18 @@ export const dynamic = "force-dynamic"
 export default async function PublicProfilePage({
   params,
 }: {
-  params: { username: string }
+  params: Promise<{ username: string }>
 }) {
+
+  const { username } = await params
+
   const supabase = await supabaseServer()
 
   // 1. Buscar perfil por username
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, username, display_name, avatar_url, created_at")
-    .eq("username", params.username)
+    .eq("username", username)
     .maybeSingle()
 
   if (!profile || error) {
