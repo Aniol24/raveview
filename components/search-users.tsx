@@ -4,7 +4,6 @@ import { useState } from "react"
 import { supabaseBrowser } from "@/lib/supabase-client"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import FollowButton from "@/components/follow-button"
 
 export default function SearchUsers({ currentUserId }: { currentUserId: string }) {
   const [q, setQ] = useState("")
@@ -46,35 +45,23 @@ export default function SearchUsers({ currentUserId }: { currentUserId: string }
 
       <div className="space-y-3">
         {results.map((u) => (
-          <div
+          <a
             key={u.id}
-            className="flex items-center justify-between py-1"
+            href={`/profile/${u.username}`}
+            className="flex items-center gap-3 hover:bg-accent p-2 rounded-md transition"
           >
-            <div className="flex items-center gap-3">
-              {/* Avatar clickable */}
-              <a href={`/profile/${u.username}`}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={u.avatar_url || ""} />
-                  <AvatarFallback>
-                    {u.display_name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </a>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={u.avatar_url || ""} />
+              <AvatarFallback>
+                {u.display_name.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
 
-              {/* Name + Username */}
-              <div>
-                <a
-                  href={`/profile/${u.username}`}
-                  className="font-medium hover:underline"
-                >
-                  {u.display_name}
-                </a>
-                <p className="text-sm text-muted-foreground">@{u.username}</p>
-              </div>
+            <div>
+              <p className="font-medium">{u.display_name}</p>
+              <p className="text-sm text-muted-foreground">@{u.username}</p>
             </div>
-
-            <FollowButton targetUserId={u.id} isFollowingInitial={false} />
-          </div>
+          </a>
         ))}
       </div>
     </div>
