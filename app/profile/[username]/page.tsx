@@ -3,7 +3,7 @@ import { Navbar } from "@/components/navbar"
 import { supabaseServer } from "@/lib/supabase-server"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import FollowButton from "./follow-button"
+import FollowButton from "../../../components/follow-button"
 
 export const dynamic = "force-dynamic"
 

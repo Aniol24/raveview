@@ -22,7 +22,11 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
+  confirm_password: z.string().min(6, "Mínimo 6 caracteres"),
   display_name: z.string().min(2, "Mínimo 2 caracteres"),
+}).refine((data) => data.password === data.confirm_password, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirm_password"],
 })
 
 export default function AuthPage() {
@@ -39,7 +43,7 @@ export default function AuthPage() {
 
   const fReg = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", display_name: "" },
+    defaultValues: { email: "", password: "", confirm_password: "", display_name: "" },
   })
 
   const syncSessionToServer = async () => {
@@ -87,8 +91,6 @@ export default function AuthPage() {
         setErr(error.message)
         return
       }
-
-
 
       setMsg("Revisa tu email para confirmar la cuenta y luego inicia sesión.")
       setTab("login")
@@ -141,6 +143,7 @@ export default function AuthPage() {
                     <p className="text-sm text-destructive">{fReg.formState.errors.display_name.message}</p>
                   )}
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="email_reg">Email</Label>
                   <Input id="email_reg" type="email" autoComplete="email" {...fReg.register("email")} />
@@ -148,6 +151,7 @@ export default function AuthPage() {
                     <p className="text-sm text-destructive">{fReg.formState.errors.email.message}</p>
                   )}
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="password_reg">Contraseña</Label>
                   <Input id="password_reg" type="password" autoComplete="new-password" {...fReg.register("password")} />
@@ -155,6 +159,16 @@ export default function AuthPage() {
                     <p className="text-sm text-destructive">{fReg.formState.errors.password.message}</p>
                   )}
                 </div>
+
+                {/* CONFIRM PASSWORD */}
+                <div className="space-y-2">
+                  <Label htmlFor="confirm_password_reg">Confirmar contraseña</Label>
+                  <Input id="confirm_password_reg" type="password" autoComplete="new-password" {...fReg.register("confirm_password")} />
+                  {fReg.formState.errors.confirm_password && (
+                    <p className="text-sm text-destructive">{fReg.formState.errors.confirm_password.message}</p>
+                  )}
+                </div>
+
                 {err && <p className="text-sm text-destructive">{err}</p>}
                 {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
                 <Button className="w-full" type="submit" disabled={isPending}>
